@@ -1,9 +1,9 @@
 // const fetch = require('node-fetch');
 
-const fetchProducts = async (searchItem) => {
+const fetchProducts = async (searchProducts) => {
   // seu código aqui
   try {
-    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${searchItem}`;
+    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${searchProducts}`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
