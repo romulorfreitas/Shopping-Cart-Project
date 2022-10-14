@@ -1,11 +1,19 @@
 // Esse tipo de comentário que estão antes de todas as funções são chamados de JSdoc,
 // experimente passar o mouse sobre o nome das funções e verá que elas possuem descrições! 
 
-// const { fetchProducts, searchProducts } = require("./helpers/fetchProducts");
+// const { fetchProducts } = require("./helpers/fetchProducts");
+
+// const { fetchItem } = require("./helpers/fetchItem");
+
+// const { fetchItem } = require("./helpers/fetchItem");
+
+// const { fetchProducts } = require("./helpers/fetchProducts");
 
 // Fique a vontade para modificar o código já escrito e criar suas próprias funções!
 
-const getSection = document.getElementsByClassName('items')[0];
+const getSection = document.querySelector('.items');
+const cartItems = document.querySelector('.cart__items');
+// const itemAdd = document.querySelector('.item__add');
 
 /**
  * Função responsável por criar e retornar o elemento de imagem do produto.
@@ -52,13 +60,22 @@ const createProductItemElement = ({ id, title, thumbnail }) => {
 
   return section;
 };
+const searchProduct = async () => {
+  const data = await fetchProducts('computador');
+  // console.log(data.results);
+  data.results.forEach((e) => {
+    getSection.appendChild(createProductItemElement(e));
+  });
+};
 
 /**
  * Função que recupera o ID do produto passado como parâmetro.
  * @param {Element} product - Elemento do produto.
  * @returns {string} ID do produto.
  */
-const getIdFromProductItem = (product) => product.querySelector('span.id').innerText;
+// const getIdFromProductItem = (product) => product.querySelector('span.id').innerText;
+
+const cartItemClickListener = (a) => a.target.remove();
 
 /**
  * Função responsável por criar e retornar um item do carrinho.
@@ -76,10 +93,19 @@ const createCartItemElement = ({ id, title, price }) => {
   return li;
 };
 
-window.onload = async () => {
-  const data = await fetchProducts('computador');
-  // console.log(data.results);
-  data.results.forEach((e) => {
-    getSection.appendChild(createProductItemElement(e));
+async function handleClickEvent(e) {
+  const productInfo = await fetchItem(e);
+  cartItems.appendChild(createCartItemElement(productInfo));
+}
+
+const itemToCart = () => {
+  getSection.addEventListener('click', (event) => {
+    const eventTarget = event.target.parentNode.firstChild.innerHTML;
+    handleClickEvent(eventTarget);
   });
+};
+
+window.onload = async () => {
+  await searchProduct();
+  itemToCart();
 };
