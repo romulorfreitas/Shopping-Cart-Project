@@ -1,19 +1,13 @@
 // Esse tipo de comentário que estão antes de todas as funções são chamados de JSdoc,
 // experimente passar o mouse sobre o nome das funções e verá que elas possuem descrições! 
-
-// const { fetchProducts } = require("./helpers/fetchProducts");
-
-// const { fetchItem } = require("./helpers/fetchItem");
-
-// const { fetchItem } = require("./helpers/fetchItem");
-
-// const { fetchProducts } = require("./helpers/fetchProducts");
-
 // Fique a vontade para modificar o código já escrito e criar suas próprias funções!
 
-const getSection = document.querySelector('.items');
+const item = document.querySelector('.items');
 const cartItems = document.querySelector('.cart__items');
 // const itemAdd = document.querySelector('.item__add');
+let storage = [];
+// console.log(cartItems2);
+// const totalprice = [];
 
 /**
  * Função responsável por criar e retornar o elemento de imagem do produto.
@@ -60,12 +54,65 @@ const createProductItemElement = ({ id, title, thumbnail }) => {
 
   return section;
 };
+
+const cartItemClickListener = (a, obj) => {
+  const objToArray = JSON.parse(getSavedCartItems());
+  storage = objToArray.filter((e) => e.id !== obj.id);
+  saveCartItems(storage);
+  // console.log(a.target);
+  a.target.remove();
+};
+
+const createCartItemElement = ({ id, title, price }) => {
+  const li = document.createElement('li');
+  li.className = 'cart__item';
+  li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
+  li.addEventListener('click', (e) => {
+    const item2 = { id, title, price };
+    cartItemClickListener(e, item2);
+  });
+  const getObj = { id, title, price };
+  storage.push(getObj);
+  saveCartItems(storage);
+  return li;
+};
+
+async function handleClickEvent(e) {
+  const productInfo = await fetchItem(e);
+  // storage.push(productInfo);
+  saveCartItems(storage);
+  cartItems.appendChild(createCartItemElement(productInfo));
+}
+
+const itemToCart = () => {
+  const buttom = document.querySelectorAll('.item');
+  // console.log(buttom);
+  buttom.forEach((e) => {
+    // const itemAdd = document.querySelector('.item__add');
+    // console.log(itemAdd);
+    const getLastChild = e.lastChild;
+    const id = e.firstChild;
+    // console.log(id);
+    // console.log(buttom);
+    getLastChild.addEventListener('click', () => {
+      handleClickEvent(id.innerHTML);
+      // console.log(target);
+    });
+  });
+
+  // item.addEventListener('click', (event) => {
+  //   const eventTarget = event.target.parentNode.firstChild.innerHTML;
+  //   handleClickEvent(eventTarget);
+  // });
+};
+
 const searchProduct = async () => {
   const data = await fetchProducts('computador');
   // console.log(data.results);
   data.results.forEach((e) => {
-    getSection.appendChild(createProductItemElement(e));
+    item.appendChild(createProductItemElement(e));
   });
+  itemToCart();
 };
 
 /**
@@ -73,10 +120,6 @@ const searchProduct = async () => {
  * @param {Element} product - Elemento do produto.
  * @returns {string} ID do produto.
  */
-// const getIdFromProductItem = (product) => product.querySelector('span.id').innerText;
-
-const cartItemClickListener = (a) => a.target.remove();
-
 /**
  * Função responsável por criar e retornar um item do carrinho.
  * @param {Object} product - Objeto do produto.
@@ -85,27 +128,28 @@ const cartItemClickListener = (a) => a.target.remove();
  * @param {string} product.price - Preço do produto.
  * @returns {Element} Elemento de um item do carrinho.
  */
-const createCartItemElement = ({ id, title, price }) => {
-  const li = document.createElement('li');
-  li.className = 'cart__item';
-  li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
-  li.addEventListener('click', cartItemClickListener);
-  return li;
+
+const getFromLocal = () => {
+  const objToArray = JSON.parse(getSavedCartItems());
+  objToArray.forEach((e) => cartItems.appendChild(createCartItemElement(e)));
+  // console.log(bcb);
 };
 
-async function handleClickEvent(e) {
-  const productInfo = await fetchItem(e);
-  cartItems.appendChild(createCartItemElement(productInfo));
-}
-
-const itemToCart = () => {
-  getSection.addEventListener('click', (event) => {
-    const eventTarget = event.target.parentNode.firstChild.innerHTML;
-    handleClickEvent(eventTarget);
+const clearCart = () => {
+  const cartItemCLeaned = document.querySelector('.cart__items');
+  const emptyCart = document.querySelector('.empty-cart');
+  emptyCart.addEventListener('click', () => {
+    const objToArray = JSON.parse(getSavedCartItems());
+    cartItemCLeaned.innerHTML = '';
+    storage = objToArray.splice(0, objToArray.lenght);
+    saveCartItems([]);
   });
 };
 
-window.onload = async () => {
-  await searchProduct();
-  itemToCart();
+window.onload = () => {
+  searchProduct();
+  clearCart();
+  if (localStorage.cartItems) {
+    getFromLocal();
+  }
 };
